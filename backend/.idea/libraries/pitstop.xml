@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="pitstop">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/pitstop.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
