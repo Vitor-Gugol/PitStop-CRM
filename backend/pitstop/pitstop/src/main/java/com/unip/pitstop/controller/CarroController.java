@@ -36,4 +36,33 @@ public class CarroController {
     }
 
     // Atualizar e excluir endpoints podem ser implementados de forma similar
+
+    // Atualizar um carro existente
+    @PutMapping("/{id}")
+    public Carro atualizar(@PathVariable Long id, @RequestBody Carro carroAtualizado) {
+        // Buscar o carro existente pelo ID
+        Carro carro = carroRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Carro não encontrado"));
+
+        // Atualizar os campos do carro com os valores recebidos
+        carro.setMarca(carroAtualizado.getMarca());
+        carro.setModelo(carroAtualizado.getModelo());
+        carro.setAno(carroAtualizado.getAno());
+        carro.setPlaca(carroAtualizado.getPlaca());
+        carro.setChassi(carroAtualizado.getChassi());
+        carro.setCor(carroAtualizado.getCor());
+
+        // Salvar o carro atualizado no banco
+        return carroRepository.save(carro);
+    }
+
+    // Excluir um carro existente
+    @DeleteMapping("/{id}")
+    public void excluir(@PathVariable Long id) {
+        Carro carro = carroRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Carro não encontrado"));
+        carroRepository.delete(carro);
+    }
+
+
 }
