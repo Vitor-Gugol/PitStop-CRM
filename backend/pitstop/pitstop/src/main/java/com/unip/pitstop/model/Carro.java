@@ -14,6 +14,7 @@ public class Carro {
     @JoinColumn(name = "id_cliente", nullable = false)
     private Cliente cliente;
 
+
     private String marca;
     private String modelo;
     private int ano;

@@ -4,6 +4,8 @@ import com.unip.pitstop.model.Carro;
 import com.unip.pitstop.repository.CarroRepository;
 import com.unip.pitstop.repository.ClienteRepository;
 import com.unip.pitstop.model.Cliente;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +14,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/carros")
 public class CarroController {
+
+
 
     @Autowired
     private CarroRepository carroRepository;
