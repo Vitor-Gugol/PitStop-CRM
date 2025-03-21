@@ -1,7 +1,6 @@
 package com.unip.pitstop.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "peca_utilizada")
@@ -11,21 +10,19 @@ public class PecaUtilizada {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idPecaUtilizada;
 
-
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_os", nullable = false)
     private OrdemServico ordemServico;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_peca", nullable = false)
     private Peca peca;
 
+
     @Column(nullable = false)
-    @NotNull(message = "O campo quantidade não pode ser nulo.")
     private Integer quantidade;
 
     @Column(nullable = false)
-    @NotNull(message = "O campo preço unitário não pode ser nulo.")
     private Double precoUnitario;
 
     // Getters e Setters

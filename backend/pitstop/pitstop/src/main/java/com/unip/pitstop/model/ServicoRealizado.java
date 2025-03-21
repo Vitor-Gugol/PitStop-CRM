@@ -1,5 +1,8 @@
 package com.unip.pitstop.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.unip.pitstop.dto.OrdemServicoDTO;
 import jakarta.persistence.*;
 
 @Entity
@@ -10,18 +13,31 @@ public class ServicoRealizado {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idServicoRealizado;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "id_os", nullable = false)
+    @JsonBackReference // Indica que este é o lado "controlado" da referência
     private OrdemServico ordemServico;
 
-    @ManyToOne
+
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "id_servico", nullable = false)
     private Servico servico;
+
 
     @Column(nullable = false)
     private Double precoCobrado;
 
     // Getters e Setters
+
+    public OrdemServicoDTO converterParaDTO(OrdemServico ordemServico) {
+        return new OrdemServicoDTO(
+                ordemServico.getIdOs(),
+                ordemServico.getCliente().getNome(),
+                ordemServico.getCarro().getModelo(),
+                ordemServico.getDataEntrada().toString(),
+                ordemServico.getStatus()
+        );
+    }
 
     public Long getIdServicoRealizado() {
         return idServicoRealizado;

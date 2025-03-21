@@ -1,7 +1,6 @@
 package com.unip.pitstop.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "carro")
@@ -11,24 +10,19 @@ public class Carro {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idCarro;
 
-    @NotNull(message = "A marca do carro é obrigatória")
-    private String marca;
-
-    @NotNull(message = "O modelo do carro é obrigatório")
-    private String modelo;
-
-    @NotNull(message = "O ano do carro é obrigatório")
-    private Integer ano;
-
-    @NotNull(message = "A placa do carro é obrigatória")
-    private String placa;
-
-    private String chassi;
-    private String cor;
-
     @ManyToOne
     @JoinColumn(name = "id_cliente", nullable = false)
     private Cliente cliente;
+
+
+
+    private String marca;
+    private String modelo;
+    private int ano;
+    private String placa;
+    private String chassi;
+    private String cor;
+
     // Getters and Setters
 
     public Long getIdCarro() {
