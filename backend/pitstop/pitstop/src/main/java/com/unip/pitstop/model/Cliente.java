@@ -1,15 +1,11 @@
-
 package com.unip.pitstop.model;
 
-
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Email;
-
-import jakarta.persistence.*;
-import org.antlr.v4.runtime.misc.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 import java.time.LocalDateTime;
-
 
 @Entity
 @Table(name = "cliente")
@@ -19,25 +15,28 @@ public class Cliente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idCliente;
 
-    @NotBlank(message = "O nome é obrigatório")
+    @NotBlank(message = "O nome é obrigatório.")
     private String nome;
 
-    @NotNull
+    @NotBlank(message = "O telefone é obrigatório.")
+    @Pattern(regexp = "\\d{10,11}", message = "O telefone deve conter 10 ou 11 dígitos.")
     private String telefone;
 
-    @NotBlank(message = "O email é obrigatório")
-    @Email(message = "O email deve ser válido")
+    @NotBlank(message = "O email é obrigatório.")
+    @Email(message = "O email deve ser válido.")
     private String email;
 
-    @NotNull
+    @NotBlank(message = "O endereço é obrigatório.")
     private String endereco;
 
-    @Column(name = "data_cadastro")
+    @Column(name = "data_cadastro", updatable = false)
     private LocalDateTime dataCadastro = LocalDateTime.now();
 
-    public Long getIdCliente(){
+    // Getters e Setters
+    public Long getIdCliente() {
         return idCliente;
     }
+
     public void setIdCliente(Long idCliente) {
         this.idCliente = idCliente;
     }
@@ -81,5 +80,4 @@ public class Cliente {
     public void setDataCadastro(LocalDateTime dataCadastro) {
         this.dataCadastro = dataCadastro;
     }
-
 }

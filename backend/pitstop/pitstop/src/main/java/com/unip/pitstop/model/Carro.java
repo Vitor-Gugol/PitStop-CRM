@@ -1,6 +1,10 @@
 package com.unip.pitstop.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 
 @Entity
 @Table(name = "carro")
@@ -10,20 +14,34 @@ public class Carro {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idCarro;
 
-    @ManyToOne
+    @NotNull(message = "O cliente associado ao carro é obrigatório.")
+    @ManyToOne(fetch = FetchType.LAZY) // FetchType.LAZY otimiza o carregamento
     @JoinColumn(name = "id_cliente", nullable = false)
     private Cliente cliente;
 
-
-
+    @NotBlank(message = "A marca do carro é obrigatória.")
+    @Column(nullable = false)
     private String marca;
+
+    @NotBlank(message = "O modelo do carro é obrigatório.")
+    @Column(nullable = false)
     private String modelo;
+
+    @Positive(message = "O ano deve ser maior que zero.")
+    @Column(nullable = false)
     private int ano;
+
+    @NotBlank(message = "A placa do carro é obrigatória.")
+    @Column(nullable = false, unique = true)
     private String placa;
+
+    @NotBlank(message = "O chassi do carro é obrigatório.")
+    @Column(nullable = false, unique = true)
     private String chassi;
+
     private String cor;
 
-    // Getters and Setters
+    // Getters e Setters
 
     public Long getIdCarro() {
         return idCarro;

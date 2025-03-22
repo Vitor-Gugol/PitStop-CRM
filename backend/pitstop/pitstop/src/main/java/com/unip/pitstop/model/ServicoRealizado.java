@@ -1,43 +1,43 @@
 package com.unip.pitstop.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.unip.pitstop.dto.OrdemServicoDTO;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "servico_realizado")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Ignora propriedades adicionais do Hibernate
 public class ServicoRealizado {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idServicoRealizado;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonBackReference
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY) // Usar LAZY para otimizar carregamento
     @JoinColumn(name = "id_os", nullable = false)
-    @JsonBackReference // Indica que este é o lado "controlado" da referência
     private OrdemServico ordemServico;
 
-
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY) // Usar LAZY para evitar carga desnecessária
     @JoinColumn(name = "id_servico", nullable = false)
     private Servico servico;
-
 
     @Column(nullable = false)
     private Double precoCobrado;
 
-    // Getters e Setters
-
+    // Método para conversão de DTO
     public OrdemServicoDTO converterParaDTO(OrdemServico ordemServico) {
         return new OrdemServicoDTO(
                 ordemServico.getIdOs(),
                 ordemServico.getCliente().getNome(),
                 ordemServico.getCarro().getModelo(),
-                ordemServico.getDataEntrada().toString(),
+                ordemServico.getDataEntrada() != null ? ordemServico.getDataEntrada().toString() : null,
                 ordemServico.getStatus()
         );
     }
+
+    // Getters e Setters
 
     public Long getIdServicoRealizado() {
         return idServicoRealizado;

@@ -1,44 +1,41 @@
 package com.unip.pitstop.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Ignora propriedades extras do Hibernate
 public class OrdemServico {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idOs;
 
+    // A data de entrada é definida automaticamente como o momento atual
     private LocalDateTime dataEntrada = LocalDateTime.now();
 
-    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference // Gerencia referência para evitar problemas de serialização
     private List<ServicoRealizado> servicosRealizados;
 
-
-    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference // Gerencia referência para evitar problemas de serialização
     private List<PecaUtilizada> pecasUtilizadas;
 
-
-    @NotNull(message = "O cliente é obrigatório")
-    @ManyToOne
+    @NotNull(message = "O cliente é obrigatório.")
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_cliente", nullable = false)
     private Cliente cliente;
 
-
-
-    @NotNull(message = "O carro é obrigatório")
-    @ManyToOne
+    @NotNull(message = "O carro é obrigatório.")
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_carro", nullable = false)
     private Carro carro;
-
 
     @NotNull(message = "A data prevista de saída é obrigatória.")
     private LocalDateTime dataPrevistaSaida;
@@ -47,11 +44,9 @@ public class OrdemServico {
     @Pattern(regexp = "Em andamento|Cancelado|Concluído", message = "Status inválido.")
     private String status;
 
-
     private Double valorTotal;
 
     // Getters e Setters
-
 
     public Long getIdOs() {
         return idOs;
@@ -68,7 +63,6 @@ public class OrdemServico {
     public void setDataEntrada(LocalDateTime dataEntrada) {
         this.dataEntrada = dataEntrada;
     }
-
 
     public Cliente getCliente() {
         return cliente;

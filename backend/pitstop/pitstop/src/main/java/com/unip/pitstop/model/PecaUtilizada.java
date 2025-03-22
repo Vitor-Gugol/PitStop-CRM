@@ -1,23 +1,26 @@
 package com.unip.pitstop.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "peca_utilizada")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Ignorar propriedades adicionais do Hibernate
 public class PecaUtilizada {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idPecaUtilizada;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonBackReference // Resolve problemas de referência cíclica durante a serialização
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL) // Usar LAZY para otimizar o carregamento
     @JoinColumn(name = "id_os", nullable = false)
     private OrdemServico ordemServico;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL) // LAZY evita carregar tudo automaticamente
     @JoinColumn(name = "id_peca", nullable = false)
     private Peca peca;
-
 
     @Column(nullable = false)
     private Integer quantidade;
@@ -26,7 +29,6 @@ public class PecaUtilizada {
     private Double precoUnitario;
 
     // Getters e Setters
-
     public Long getIdPecaUtilizada() {
         return idPecaUtilizada;
     }
