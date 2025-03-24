@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "servico_realizado")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Ignora propriedades adicionais do Hibernate
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class ServicoRealizado {
 
     @Id
@@ -26,7 +26,6 @@ public class ServicoRealizado {
     @Column(nullable = false)
     private Double precoCobrado;
 
-    // Método para conversão de DTO
     public OrdemServicoDTO converterParaDTO(OrdemServico ordemServico) {
         return new OrdemServicoDTO(
                 ordemServico.getIdOs(),

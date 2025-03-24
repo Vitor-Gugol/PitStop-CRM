@@ -2,9 +2,7 @@ package com.unip.pitstop.controller;
 
 import com.unip.pitstop.dto.OrdemServicoDTO;
 import com.unip.pitstop.model.*;
-import com.unip.pitstop.repository.OrdemServicoRepository;
-import com.unip.pitstop.repository.ClienteRepository;
-import com.unip.pitstop.repository.CarroRepository;
+import com.unip.pitstop.repository.*;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -17,9 +15,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
+import com.unip.pitstop.model.Cliente;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:3000")
@@ -35,6 +34,13 @@ public class OrdemServicoController {
 
     @Autowired
     private CarroRepository carroRepository;
+
+    @Autowired
+    private PecaRepository pecaRepository;
+
+    @Autowired
+    private ServicoRepository servicoRepository;
+
 
     private static final Logger logger = LoggerFactory.getLogger(OrdemServicoController.class);
 
@@ -72,38 +78,61 @@ public class OrdemServicoController {
         }
 
         try {
+
             // Garantir que cliente e carro não sejam nulos
-            if (ordemServico.getCliente() == null || ordemServico.getCarro() == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cliente ou carro não informado");
+
+            if (ordemServico.getCliente() == null || ordemServico.getCliente().getEmail() == null) {
+                throw new IllegalArgumentException("E-mail do cliente é obrigatório.");
             }
 
-            // Buscar ou criar cliente
-            Cliente cliente = clienteRepository.findByNome(ordemServico.getCliente().getNome())
-                    .orElseGet(() -> clienteRepository.save(ordemServico.getCliente()));
+// Buscar cliente pelo e-mail ou criar um novo
+                    Cliente cliente = clienteRepository.findByEmail(ordemServico.getCliente().getEmail())
+                            .orElseGet(() -> {
+                                if (ordemServico.getCliente().getNome() == null) {
+                                    throw new IllegalArgumentException("Nome do cliente é obrigatório ao criar um novo cliente.");
+                                }
+                                logger.info("Cliente não encontrado. Criando novo cliente: {}", ordemServico.getCliente());
+                                return clienteRepository.save(ordemServico.getCliente());
+                            });
 
-            // Buscar ou criar carro
-            Carro carro = carroRepository.findByPlaca(ordemServico.getCarro().getPlaca())
-                    .orElseGet(() -> carroRepository.save(ordemServico.getCarro()));
 
-            // Associar cliente e carro à ordem
-            ordemServico.setCliente(cliente);
-            ordemServico.setCarro(carro);
 
-            // Validar e associar peças e serviços
+            if (ordemServico.getCarro() == null || ordemServico.getCarro().getPlaca() == null) {
+                throw new IllegalArgumentException("Placa do carro é obrigatória.");
+            }
+
+                            // Buscar carro pela placa ou criar um novo
+                            Carro carro = carroRepository.findByPlaca(ordemServico.getCarro().getPlaca())
+                                .orElseGet(() -> {
+                                    if (ordemServico.getCarro().getMarca() == null || ordemServico.getCarro().getModelo() == null) {
+                                        throw new IllegalArgumentException("Marca e modelo do carro são obrigatórios ao criar um novo carro.");
+                                    }
+                                    logger.info("Carro não encontrado. Criando novo carro: {}", ordemServico.getCarro());
+                                    ordemServico.getCarro().setCliente(cliente); // Associar cliente ao carro
+                                    return carroRepository.save(ordemServico.getCarro());
+                                });
+
+
+                        ordemServico.setCliente(cliente);
+                        ordemServico.setCarro(carro);
+
+
+                        ordemServicoRepository.save(ordemServico);
+                        logger.info("Ordem de serviço salva com sucesso.");
+
+
             if (ordemServico.getPecasUtilizadas() != null) {
                 for (PecaUtilizada peca : ordemServico.getPecasUtilizadas()) {
-                    if (peca.getPrecoUnitario() == null || peca.getPrecoUnitario() <= 0) {
-                        throw new RuntimeException("Preço unitário inválido para a peça de ID: " + peca.getIdPecaUtilizada());
-                    }
-                    peca.setOrdemServico(ordemServico);
+                    logger.info("Processando peça utilizada: {}", peca);
                 }
             }
 
             if (ordemServico.getServicosRealizados() != null) {
                 for (ServicoRealizado servico : ordemServico.getServicosRealizados()) {
-                    servico.setOrdemServico(ordemServico);
+                    logger.info("Processando serviço realizado: {}", servico);
                 }
             }
+
 
             // Salvar ordem de serviço
             OrdemServico ordemSalva = ordemServicoRepository.save(ordemServico);
@@ -113,7 +142,8 @@ public class OrdemServicoController {
         } catch (Exception e) {
             logger.error("Erro ao salvar a ordem de serviço: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro ao salvar a ordem de serviço: " + e.getMessage());
+                    .body(Map.of("erro", "Erro ao salvar a ordem de serviço: " + e.getMessage()));
+
         }
     }
 

@@ -56,6 +56,7 @@ function NovaOrdem() {
         if (!ordem.carroChassi.trim()) erros.push("O chassi do carro é obrigatório.");
         if (!ordem.dataPrevistaSaida) erros.push("A data prevista de saída é obrigatória.");
         if (!ordem.status.trim()) erros.push("O status da ordem é obrigatório.");
+        if (!ordem.clienteEmail || !ordem.clienteEmail.includes("@")) erros.push("E-mail do cliente é obrigatório e deve ser válido.");
         return erros.length ? erros : null;
     };
 

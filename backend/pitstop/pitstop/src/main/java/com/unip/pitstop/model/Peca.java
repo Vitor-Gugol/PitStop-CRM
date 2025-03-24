@@ -1,9 +1,11 @@
 package com.unip.pitstop.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "peca")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Peca {
 
     @Id

@@ -6,19 +6,20 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "peca_utilizada")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Ignorar propriedades adicionais do Hibernate
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class PecaUtilizada {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idPecaUtilizada;
 
-    @JsonBackReference // Resolve problemas de referência cíclica durante a serialização
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL) // Usar LAZY para otimizar o carregamento
+
+    @JsonBackReference
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL) //pra que serve
     @JoinColumn(name = "id_os", nullable = false)
     private OrdemServico ordemServico;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL) // LAZY evita carregar tudo automaticamente
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "id_peca", nullable = false)
     private Peca peca;
 

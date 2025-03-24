@@ -1,5 +1,6 @@
 package com.unip.pitstop.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Email;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "cliente")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Cliente {
 
     @Id

@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 @Entity
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Ignora propriedades extras do Hibernate
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class OrdemServico {
 
     @Id
@@ -28,12 +28,12 @@ public class OrdemServico {
     private List<PecaUtilizada> pecasUtilizadas;
 
     @NotNull(message = "O cliente é obrigatório.")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_cliente", nullable = false)
     private Cliente cliente;
 
     @NotNull(message = "O carro é obrigatório.")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_carro", nullable = false)
     private Carro carro;
 

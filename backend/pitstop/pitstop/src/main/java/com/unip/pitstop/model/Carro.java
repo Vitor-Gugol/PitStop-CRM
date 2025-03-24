@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Positive;
 
 @Entity
 @Table(name = "carro")
+
 public class Carro {
 
     @Id
@@ -15,7 +16,7 @@ public class Carro {
     private Long idCarro;
 
     @NotNull(message = "O cliente associado ao carro é obrigatório.")
-    @ManyToOne(fetch = FetchType.LAZY) // FetchType.LAZY otimiza o carregamento
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_cliente", nullable = false)
     private Cliente cliente;
 
