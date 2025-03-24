@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import com.unip.pitstop.model.Peca;
+import com.unip.pitstop.model.Servico;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -122,16 +124,42 @@ public class OrdemServicoController {
 
 
             if (ordemServico.getPecasUtilizadas() != null) {
-                for (PecaUtilizada peca : ordemServico.getPecasUtilizadas()) {
-                    logger.info("Processando peça utilizada: {}", peca);
+                for (PecaUtilizada pecaUtilizada : ordemServico.getPecasUtilizadas()) {
+                    if (pecaUtilizada.getIdPeca() == null) { // Verificar ID da peça diretamente
+                        throw new RuntimeException("O campo idPeca é obrigatório.");
+                    }
+
+                    // Buscar a peça pelo ID
+                    Peca pecaExistente = pecaRepository.findById(pecaUtilizada.getIdPeca())
+                            .orElseThrow(() -> new RuntimeException("Peça não encontrada com ID: " + pecaUtilizada.getIdPeca()));
+
+                    // Associar a peça ao objeto PecaUtilizada
+                    pecaUtilizada.setPeca(pecaExistente); // Relacionar objeto completo
+                    pecaUtilizada.setOrdemServico(ordemServico);
                 }
             }
 
+
+
+
+
             if (ordemServico.getServicosRealizados() != null) {
-                for (ServicoRealizado servico : ordemServico.getServicosRealizados()) {
-                    logger.info("Processando serviço realizado: {}", servico);
+                for (ServicoRealizado servicoRealizado : ordemServico.getServicosRealizados()) {
+                    if (servicoRealizado.getIdServico() == null) { // Verificar ID do serviço diretamente
+                        throw new RuntimeException("O campo idServico é obrigatório.");
+                    }
+
+                    // Buscar o serviço pelo ID
+                    Servico servicoExistente = servicoRepository.findById(servicoRealizado.getIdServico())
+                            .orElseThrow(() -> new RuntimeException("Serviço não encontrado com ID: " + servicoRealizado.getIdServico()));
+
+                    // Associar o serviço ao objeto ServicoRealizado
+                    servicoRealizado.setServico(servicoExistente); // Relacionar objeto completo
+                    servicoRealizado.setOrdemServico(ordemServico);
                 }
             }
+
+
 
 
             // Salvar ordem de serviço

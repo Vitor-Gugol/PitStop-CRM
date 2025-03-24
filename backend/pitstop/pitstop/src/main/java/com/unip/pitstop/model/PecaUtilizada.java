@@ -13,15 +13,18 @@ public class PecaUtilizada {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idPecaUtilizada;
 
+    @Column(name = "id_peca", nullable = false)
+    private Long idPeca;
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL) //pra que serve
     @JoinColumn(name = "id_os", nullable = false)
     private OrdemServico ordemServico;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "id_peca", nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_peca", insertable = false, updatable = false) // Relacionamento com Peca
     private Peca peca;
+
 
     @Column(nullable = false)
     private Integer quantidade;
@@ -50,6 +53,13 @@ public class PecaUtilizada {
         return peca;
     }
 
+    public Long getIdPeca() {
+        return idPeca;
+    }
+
+    public void setIdPeca(Long idPeca) {
+        this.idPeca = idPeca;
+    }
     public void setPeca(Peca peca) {
         this.peca = peca;
     }

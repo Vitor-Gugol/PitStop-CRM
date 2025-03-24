@@ -14,13 +14,16 @@ public class ServicoRealizado {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idServicoRealizado;
 
+    @Column(name = "id_servico", nullable = false) // Chave estrangeira direta
+    private Long idServico;
+
     @JsonBackReference
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY) // Usar LAZY para otimizar carregamento
     @JoinColumn(name = "id_os", nullable = false)
     private OrdemServico ordemServico;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY) // Usar LAZY para evitar carga desnecessária
-    @JoinColumn(name = "id_servico", nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_servico", insertable = false, updatable = false)
     private Servico servico;
 
     @Column(nullable = false)
@@ -38,6 +41,13 @@ public class ServicoRealizado {
 
     // Getters e Setters
 
+    public Long getIdServico() {
+        return idServico;
+    }
+
+    public void setIdServico(Long idServico) {
+        this.idServico = idServico;
+    }
     public Long getIdServicoRealizado() {
         return idServicoRealizado;
     }
