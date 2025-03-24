@@ -124,5 +124,57 @@ INSERT INTO servico_realizado (id_os, id_servico, preco_cobrado) VALUES
 (5, 3, 100.00);
 
 
+CREATE FUNCTION calcular_valor_total_os()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.valor_total = (
+        SELECT COALESCE(SUM(peca_utilizada.quantidade * peca_utilizada.preco_unitario), 0)
+        FROM peca_utilizada
+        WHERE peca_utilizada.id_os = NEW.id_os
+    ) + (
+        SELECT COALESCE(SUM(servico_realizado.preco_cobrado), 0)
+        FROM servico_realizado
+        WHERE servico_realizado.id_os = NEW.id_os
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER atualizar_valor_total_os
+AFTER INSERT OR UPDATE ON peca_utilizada
+FOR EACH ROW
+EXECUTE FUNCTION calcular_valor_total_os();
+
+
+
+
+CREATE FUNCTION atualizar_estoque_pecas()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE peca
+    SET quantidade_estoque = quantidade_estoque - NEW.quantidade
+    WHERE id_peca = NEW.id_peca;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER atualizar_estoque
+AFTER INSERT ON peca_utilizada
+FOR EACH ROW
+EXECUTE FUNCTION atualizar_estoque_pecas();
+
+
+
+CREATE TABLE historico_status_os (
+    id_historico SERIAL PRIMARY KEY,
+    id_os INT REFERENCES ordem_servico(id_os) ON DELETE CASCADE,
+    status_anterior VARCHAR(50),
+    status_novo VARCHAR(50),
+    data_alteracao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE INDEX idx_placa_carro ON carro(placa);
+CREATE INDEX idx_nome_cliente ON cliente(nome);
 
 
