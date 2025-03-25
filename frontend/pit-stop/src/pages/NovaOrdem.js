@@ -57,9 +57,12 @@ function NovaOrdem() {
         if (!ordem.dataPrevistaSaida) erros.push("A data prevista de saída é obrigatória.");
         if (!ordem.status.trim()) erros.push("O status da ordem é obrigatório.");
         if (!ordem.clienteEmail || !ordem.clienteEmail.includes("@")) erros.push("E-mail do cliente é obrigatório e deve ser válido.");
+       if (!ordem.carroPlaca) erros.push("Placa do carro é obrigatória.");
+        
         return erros.length ? erros : null;
     };
 
+    
     // Submissão do formulário
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -177,7 +180,7 @@ function NovaOrdem() {
                             <option value="">Selecione uma peça</option>
                             {pecas.map((peca) => (
                                 <option key={peca.idPeca} value={peca.idPeca}>
-                                    {peca.nome} (Estoque: {peca.quantidadeEstoque})
+                                    {peca.nome}
                                 </option>
                             ))}
                         </select>
@@ -220,7 +223,7 @@ function NovaOrdem() {
                             <option value="">Selecione um serviço</option>
                             {servicos.map((servico) => (
                                 <option key={servico.idServico} value={servico.idServico}>
-                                    {servico.descricao} (R$ {servico.preco})
+                                    {servico.descricao}
                                 </option>
                             ))}
                         </select>

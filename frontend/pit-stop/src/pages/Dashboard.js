@@ -10,14 +10,37 @@ Modal.setAppElement("#root");
 function Dashboard() {
     const [ordens, setOrdens] = useState([]);
     const [modalIsOpen, setModalIsOpen] = useState(false);
-    const [ordemSelecionada, setOrdemSelecionada] = useState(null);
+    const [ordemSelecionada, setOrdemSelecionada] = useState({
+        idOs: null,
+        clienteNome: "",
+        carroModelo: "",
+        carroPlaca: "",
+        dataEntrada: "",
+        dataPrevistaSaida: "",
+        pecasUtilizadas: [],
+        servicosRealizados: [],
+        status: "",
+        valorTotal: "",
+    });
+    
 
     const [currentPage, setCurrentPage] = useState(0); 
     const [totalPages, setTotalPages] = useState(0); 
     const [pageSize] = useState(10);
     const [pecas, setPecas] = useState([]);
     const [servicos, setServicos] = useState([]);
-
+    
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+    
+        setOrdemSelecionada((prevState) => ({
+            ...prevState,
+            [name]: name === "dataPrevistaSaida" ? value + ":00" : value, 
+        }));
+    };
+    
+    
+    
     const [nomesPecas, setNomesPecas] = useState([]);
 const [nomesServicos, setNomesServicos] = useState([]);
 
@@ -37,7 +60,7 @@ const buscarDetalhesOrdem = (id) => {
     fetch(`http://localhost:8080/ordens/detalhes/${id}`)
         .then((response) => response.json())
         .then((data) => {
-            console.log("Detalhes da ordem carregados:", data); // Confirme que os dados chegaram
+            console.log("Detalhes da ordem carregados:", data); 
             setOrdemSelecionada(data);
             setModalIsOpen(true);
         })
@@ -71,15 +94,32 @@ const buscarDetalhesOrdem = (id) => {
             })
             .catch((error) => console.error("Erro ao buscar serviços:", error));
     };
-    const abrirModal = (ordem) => {
-        setOrdemSelecionada(ordem);
-        setModalIsOpen(true);
+    const abrirModal = () => {
+        if (!modalIsOpen) {
+            setModalIsOpen(true);
+        }
     };
 
     const fecharModal = () => {
-        setModalIsOpen(false);
-        setOrdemSelecionada(null);
+        if (modalIsOpen) {
+            setModalIsOpen(false);
+            setOrdemSelecionada({
+                idOs: null,
+                clienteNome: "",
+                carroModelo: "",
+                carroPlaca: "",
+                dataEntrada: "",
+                dataPrevistaSaida: "",
+                pecasUtilizadas: [],
+                servicosRealizados: [],
+                status: "",
+                valorTotal: "",
+            });
+        }
     };
+    
+ 
+    
     const salvarEdicao = () => {
         fetch(`http://localhost:8080/ordens/${ordemSelecionada.idOs}`, {
             method: "PUT",
@@ -96,21 +136,76 @@ const buscarDetalhesOrdem = (id) => {
             })
             .then((data) => {
                 console.log("Ordem atualizada:", data);
-                fecharModal(); // Fecha o modal
-                buscarOrdens(); // Atualiza a lista na dashboard
+                fecharModal();
+                buscarOrdens(); 
             })
-            .catch((error) => console.error("Erro ao salvar edição:", error));
+            .catch((error) => {
+                console.error("Detalhes do erro:", error);
+                alert(error.message || "Erro ao salvar edição. Verifique os dados e tente novamente.");
+            });
+            
+
+            console.log("Dados enviados ao backend:", ordemSelecionada);
+
     };
+    console.log("Data Prevista de Saída enviada:", ordemSelecionada.dataPrevistaSaida);
+ 
+
+    const calcularPrecoTotal = () => {
+        let total = 0;
+    
+        // Somar valores das peças utilizadas
+        if (ordemSelecionada.pecasUtilizadas && ordemSelecionada.pecasUtilizadas.length > 0) {
+            total += ordemSelecionada.pecasUtilizadas.reduce(
+                (acc, peca) => acc + (peca.quantidade * peca.precoUnitario || 0),
+                0
+            );
+        }
+    
+        // Somar valores dos serviços realizados
+        if (ordemSelecionada.servicosRealizados && ordemSelecionada.servicosRealizados.length > 0) {
+            total += ordemSelecionada.servicosRealizados.reduce(
+                (acc, servico) => acc + (servico.precoCobrado || 0),
+                0
+            );
+        }
+    
+        // Atualizar o estado com o valor total
+        setOrdemSelecionada((prevState) => ({
+            ...prevState,
+            valorTotal: total,
+        }));
+    };
+    
+    const excluirOrdem = (id) => {
+        fetch(`http://localhost:8080/ordens/${id}`, {
+            method: "DELETE",
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error("Erro ao excluir a ordem de serviço");
+                }
+                console.log(`Ordem de serviço com ID ${id} excluída com sucesso.`);
+                buscarOrdens(); // Atualiza a lista de ordens
+            })
+            .catch((error) => console.error("Erro ao excluir a ordem de serviço:", error));
+    };
+    
+    
+    
     const buscarDetalhesPecaServico = (id) => {
         fetch(`http://localhost:8080/ordens/detalhes/pecas-servicos/${id}`)
             .then((response) => response.json())
             .then((data) => {
                 console.log("Detalhes de peças e serviços:", data);
-                setOrdemSelecionada(data); // Atualiza o estado para exibir no modal
-                setModalIsOpen(true); // Abre o modal
+                setOrdemSelecionada(data); 
+                setModalIsOpen(true); 
             })
             .catch((error) => console.error("Erro ao buscar detalhes de peças e serviços:", error));
     };
+    console.log("Data enviada ao backend:", ordemSelecionada.dataPrevistaSaida);
+ 
+    
     
     return (
         <div className="dashboard-container">
@@ -118,7 +213,7 @@ const buscarDetalhesOrdem = (id) => {
            
            
 
-            {/* Tabela de ordens */}
+          
             <div className="dashboard-content">
                 <h2 className="table-title">Ordens de Serviço</h2>
                 <table className="dashboard-table">
@@ -128,7 +223,7 @@ const buscarDetalhesOrdem = (id) => {
         <th>Cliente</th>
         <th>Carro</th>
         <th>Status</th>
-        <th>Data de Entrada</th> {/* Nova coluna adicionada */}
+        <th>Data de Entrada</th>
         <th>Ações</th>
     
     </tr>
@@ -139,18 +234,24 @@ const buscarDetalhesOrdem = (id) => {
     {ordens && Array.isArray(ordens) && ordens.map((ordem) => (
         <tr key={ordem.idOs}>
             <td>{ordem.idOs}</td>
-            <td>{ordem.clienteNome}</td>
-            <td>{ordem.carroModelo}</td>
-            <td>{ordem.status}</td>
-            <td>{new Date(ordem.dataEntrada).toLocaleDateString()}</td> {/* Exibe a data formatada */}
+            <td>{ordem.clienteNome || "Não informado"}</td>
+            <td>{ordem.carroModelo || "Não informado"}</td>
+            <td>{ordem.status || "Não informado" }</td>
+            <td>{new Date(ordem.dataEntrada).toLocaleDateString()}</td> 
             <td>
             <button
                 className="editar-btn"
-                onClick={() => buscarDetalhesOrdem(ordem.idOs)} // Passa o ID para a função
+                onClick={() => buscarDetalhesOrdem(ordem.idOs)} 
             >
                 Editar
             </button>
-
+             {/* Botão Excluir */}
+             <button
+                    className="excluir-btn"
+                    onClick={() => excluirOrdem(ordem.idOs)}
+                >
+                    Excluir
+                </button>
 
 
             </td>
@@ -164,7 +265,7 @@ const buscarDetalhesOrdem = (id) => {
                 
             </div>
 
-            {/* Botões de paginação */}
+            
             <div className="pagination-controls">
                 <button
                     className="pagination-btn"
@@ -189,7 +290,7 @@ const buscarDetalhesOrdem = (id) => {
                     <button className="nova-ordem-btn">Criar Nova Ordem</button>
                 </Link>
 
-            {/* Modal de edição */}
+         
          <Modal
     isOpen={modalIsOpen}
     onRequestClose={fecharModal}
@@ -201,13 +302,14 @@ const buscarDetalhesOrdem = (id) => {
         <div className="modal-body">
             <h2 className="modal-title">Editar Ordem de Serviço</h2>
             <form className="modal-form">
-                {/* Campo para Cliente */}
+       
+
                 <label className="form-label">
                     Cliente:
                     <input
                         className="form-input"
                         type="text"
-                        value={ordemSelecionada.clienteNome || ""} // Pré-preenchido ou vazio
+                        value={ordemSelecionada.clienteNome || ""} 
                         onChange={(e) =>
                             setOrdemSelecionada({
                                 ...ordemSelecionada,
@@ -217,13 +319,13 @@ const buscarDetalhesOrdem = (id) => {
                     />
                 </label>
 
-                {/* Campo para Carro */}
+            
                 <label className="form-label">
                     Carro:
                     <input
                         className="form-input"
                         type="text"
-                        value={ordemSelecionada.carroModelo || ""} // Pré-preenchido ou vazio
+                        value={ordemSelecionada.carroModelo || ""} 
                         onChange={(e) =>
                             setOrdemSelecionada({
                                 ...ordemSelecionada,
@@ -233,13 +335,13 @@ const buscarDetalhesOrdem = (id) => {
                     />
                 </label>
 
-                {/* Campo para Placa */}
+              
                 <label className="form-label">
                     Placa:
                     <input
                         className="form-input"
                         type="text"
-                        value={ordemSelecionada.carroPlaca || ""} // Pré-preenchido ou vazio
+                        value={ordemSelecionada.carroPlaca || ""} 
                         onChange={(e) =>
                             setOrdemSelecionada({
                                 ...ordemSelecionada,
@@ -249,29 +351,34 @@ const buscarDetalhesOrdem = (id) => {
                     />
                 </label>
 
-                {/* Campo para Data Prevista de Saída */}
                 <label className="form-label">
-                    Data Prevista de Saída:
-                    <input
-                        className="form-input"
-                        type="date"
-                        value={ordemSelecionada.dataPrevistaSaida || ""} // Pré-preenchido ou vazio
-                        onChange={(e) =>
-                            setOrdemSelecionada({
-                                ...ordemSelecionada,
-                                dataPrevistaSaida: e.target.value,
-                            })
-                        }
-                    />
-                </label>
+    Data Prevista de Saída:
+    <input
+    name="dataPrevistaSaida"
+    type="datetime-local"
+    value={ordemSelecionada.dataPrevistaSaida?.slice(0, 16) || ""} 
+    onChange={handleInputChange}
+/>
 
-                {/* Campo para Valor Total */}
+
+
+</label>
+
+
+
+
+
+
+
+
+
+          
                 <label className="form-label">
                     Valor Total:
                     <input
                         className="form-input"
                         type="number"
-                        value={ordemSelecionada.valorTotal || ""} // Pré-preenchido ou vazio
+                        value={ordemSelecionada.valorTotal || ""} 
                         onChange={(e) =>
                             setOrdemSelecionada({
                                 ...ordemSelecionada,
@@ -281,12 +388,12 @@ const buscarDetalhesOrdem = (id) => {
                     />
                 </label>
 
-                {/* Campo para Status */}
+           
                 <label className="form-label">
                     Status:
                     <select
                         className="form-select"
-                        value={ordemSelecionada.status || ""} // Pré-preenchido ou vazio
+                        value={ordemSelecionada.status || ""} 
                         onChange={(e) =>
                             setOrdemSelecionada({
                                 ...ordemSelecionada,
@@ -301,8 +408,8 @@ const buscarDetalhesOrdem = (id) => {
                 </label>
             </form>
 
-           {/* Exibição das Peças Utilizadas */}
-{/* Lista de Peças Utilizadas */}
+          
+
 {ordemSelecionada?.pecasUtilizadas && ordemSelecionada.pecasUtilizadas.length > 0 && (
     <div className="modal-section">
         <h3>Peças Utilizadas</h3>
@@ -348,6 +455,7 @@ const buscarDetalhesOrdem = (id) => {
                             ...ordemSelecionada,
                             pecasUtilizadas: novasPecas,
                         });
+                        calcularPrecoTotal(); // Recalcula o preço total
                     }}
                 />
             </td>
@@ -362,6 +470,7 @@ const buscarDetalhesOrdem = (id) => {
                             ...ordemSelecionada,
                             pecasUtilizadas: novasPecas,
                         });
+                        calcularPrecoTotal(); // Recalcula o preço total
                     }}
                 />
             </td>
@@ -383,7 +492,7 @@ const buscarDetalhesOrdem = (id) => {
 )}
 
 
-{/* Exibição dos Serviços Realizados */}
+
 {ordemSelecionada?.servicosRealizados && ordemSelecionada.servicosRealizados.length > 0 && (
     <div className="modal-section">
         <h3>Serviços Realizados</h3>
@@ -428,6 +537,7 @@ const buscarDetalhesOrdem = (id) => {
                             ...ordemSelecionada,
                             servicosRealizados: novosServicos,
                         });
+                        calcularPrecoTotal(); // Recalcula o preço total
                     }}
                 />
             </td>
@@ -436,28 +546,9 @@ const buscarDetalhesOrdem = (id) => {
 </tbody>
 
         </table>
-        <button
-    onClick={() => {
-        const novosServicos = [...ordemSelecionada.servicosRealizados, { idServico: "", precoCobrado: 0 }];
-        setOrdemSelecionada({ ...ordemSelecionada, servicosRealizados: novosServicos });
-    }}
->
-    Adicionar Serviço
-</button>
+       
 
-        <button
-            className="adicionar-servico-btn"
-            onClick={() => {
-                const novosServicos = [...ordemSelecionada.servicosRealizados, { nome: "", precoCobrado: 0 }];
-                setOrdemSelecionada({
-                    ...ordemSelecionada,
-                    servicosRealizados: novosServicos,
-                });
-            }}
-        >
-            Adicionar Outro Serviço
-        </button>
-
+       
 
     </div>
 )}
@@ -465,11 +556,21 @@ const buscarDetalhesOrdem = (id) => {
 
         </div>
     )}
+    <button
+    onClick={(e) => {
+        e.preventDefault(); 
+        salvarEdicao(); 
+    }}
+>
+    Enviar Atualização
+</button>
+
 </Modal>
 
 
 
         </div>
+        
     );
 }
 

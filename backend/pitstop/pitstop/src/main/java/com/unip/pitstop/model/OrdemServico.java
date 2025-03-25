@@ -1,12 +1,15 @@
 package com.unip.pitstop.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+
 
 @Entity
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -16,14 +19,15 @@ public class OrdemServico {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idOs;
 
+
     // A data de entrada é definida automaticamente como o momento atual
     private LocalDateTime dataEntrada = LocalDateTime.now();
 
-    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonManagedReference // Gerencia referência para evitar problemas de serialização
     private List<ServicoRealizado> servicosRealizados;
 
-    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonManagedReference // Gerencia referência para evitar problemas de serialização
     private List<PecaUtilizada> pecasUtilizadas;
 
@@ -32,13 +36,16 @@ public class OrdemServico {
     @JoinColumn(name = "id_cliente", nullable = false)
     private Cliente cliente;
 
+
     @NotNull(message = "O carro é obrigatório.")
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_carro", nullable = false)
     private Carro carro;
 
     @NotNull(message = "A data prevista de saída é obrigatória.")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm[:ss]")
     private LocalDateTime dataPrevistaSaida;
+
 
     @NotNull(message = "O status é obrigatório.")
     @Pattern(regexp = "Em andamento|Cancelado|Concluído", message = "Status inválido.")

@@ -45,6 +45,8 @@ public class OrdemServicoController {
     private ServicoRepository servicoRepository;
 
 
+
+
     private static final Logger logger = LoggerFactory.getLogger(OrdemServicoController.class);
 
 
@@ -154,7 +156,7 @@ public class OrdemServicoController {
                 throw new IllegalArgumentException("E-mail do cliente é obrigatório.");
             }
 
-// Buscar cliente pelo e-mail ou criar um novo
+
                     Cliente cliente = clienteRepository.findByEmail(ordemServico.getCliente().getEmail())
                             .orElseGet(() -> {
                                 if (ordemServico.getCliente().getNome() == null) {
@@ -187,7 +189,9 @@ public class OrdemServicoController {
 
 
                         ordemServicoRepository.save(ordemServico);
+
                         logger.info("Ordem de serviço salva com sucesso.");
+
 
 
             if (ordemServico.getPecasUtilizadas() != null) {
@@ -243,71 +247,82 @@ public class OrdemServicoController {
     }
 
     @PutMapping("/{id}")
+    @Transactional
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody OrdemServico ordemAtualizada) {
         try {
-            // Buscar a ordem de serviço existente
-            OrdemServico ordem = ordemServicoRepository.findById(id)
+            OrdemServico ordemExistente = ordemServicoRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Ordem de Serviço não encontrada"));
 
-            // Atualizar dados básicos
-            ordem.setDataPrevistaSaida(ordemAtualizada.getDataPrevistaSaida());
-            ordem.setStatus(ordemAtualizada.getStatus());
-            ordem.setValorTotal(ordemAtualizada.getValorTotal());
-
-            // Atualizar peças utilizadas
-            if (ordemAtualizada.getPecasUtilizadas() != null) {
-                // Remover todas as peças existentes
-                ordem.getPecasUtilizadas().clear();
-
-                for (PecaUtilizada pecaUtilizada : ordemAtualizada.getPecasUtilizadas()) {
-                    if (pecaUtilizada.getIdPeca() == null) {
-                        throw new RuntimeException("ID da peça é obrigatório.");
-                    }
-
-                    // Buscar a peça pelo ID
-                    Peca pecaExistente = pecaRepository.findById(pecaUtilizada.getIdPeca())
-                            .orElseThrow(() -> new RuntimeException("Peça não encontrada: ID " + pecaUtilizada.getIdPeca()));
-
-                    // Configurar relação entre peça e ordem
-                    pecaUtilizada.setPeca(pecaExistente);
-                    pecaUtilizada.setOrdemServico(ordem);
-
-                    // Adicionar a peça utilizada à coleção
-                    ordem.getPecasUtilizadas().add(pecaUtilizada);
-                }
+            // Atualizar ou criar cliente
+            if (ordemAtualizada.getCliente() != null && ordemAtualizada.getCliente().getIdCliente() != null) {
+                logger.info("Cliente recebido no payload: {}", ordemAtualizada.getCliente());
+                Cliente cliente = clienteRepository.findById(ordemAtualizada.getCliente().getIdCliente())
+                        .orElseGet(() -> {
+                            if (ordemAtualizada.getCliente().getNome() == null) {
+                                throw new IllegalArgumentException("Nome do cliente é obrigatório ao criar um novo cliente.");
+                            }
+                            logger.info("Cliente não encontrado. Criando novo cliente: {}", ordemAtualizada.getCliente());
+                            return clienteRepository.save(ordemAtualizada.getCliente());
+                        });
+                ordemExistente.setCliente(cliente); // Atualizar cliente na ordem
             }
 
 
+
+            if (ordemAtualizada.getCarro() != null && ordemAtualizada.getCarro().getIdCarro() != null) {
+                logger.info("Carro recebido no payload: {}", ordemAtualizada.getCarro());
+                Carro carro = carroRepository.findById(ordemAtualizada.getCarro().getIdCarro())
+                        .orElseGet(() -> {
+                            if (ordemAtualizada.getCarro().getMarca() == null || ordemAtualizada.getCarro().getModelo() == null) {
+                                throw new IllegalArgumentException("Marca e modelo do carro são obrigatórios ao criar um novo carro.");
+                            }
+                            logger.info("Carro não encontrado. Criando novo carro: {}", ordemAtualizada.getCarro());
+                            return carroRepository.save(ordemAtualizada.getCarro());
+                        });
+                ordemExistente.setCarro(carro); // Atualizar carro na ordem existente
+            }
+
+
+
+
+
+            if (ordemAtualizada.getPecasUtilizadas() != null) {
+                logger.info("Atualizando peças utilizadas...");
+                ordemExistente.getPecasUtilizadas().clear();
+                for (PecaUtilizada pecaUtilizada : ordemAtualizada.getPecasUtilizadas()) {
+                    Peca peca = pecaRepository.findById(pecaUtilizada.getIdPeca())
+                            .orElseThrow(() -> new RuntimeException("Peça não encontrada: ID " + pecaUtilizada.getIdPeca()));
+                    pecaUtilizada.setPeca(peca);
+                    pecaUtilizada.setOrdemServico(ordemExistente);
+                    ordemExistente.getPecasUtilizadas().add(pecaUtilizada);
+                }
+            }
 
             // Atualizar serviços realizados
             if (ordemAtualizada.getServicosRealizados() != null) {
-                // Remover todos os serviços existentes
-                ordem.getServicosRealizados().clear();
-
+                logger.info("Atualizando serviços realizados...");
+                ordemExistente.getServicosRealizados().clear();
                 for (ServicoRealizado servicoRealizado : ordemAtualizada.getServicosRealizados()) {
-                    if (servicoRealizado.getIdServico() == null) {
-                        throw new RuntimeException("ID do serviço é obrigatório.");
-                    }
-
-                    // Buscar o serviço pelo ID
-                    Servico servicoExistente = servicoRepository.findById(servicoRealizado.getIdServico())
-                            .orElseThrow(() -> new RuntimeException("Serviço não encontrado: ID " + servicoRealizado.getIdServico()));
-
-                    // Configurar relação entre serviço e ordem
-                    servicoRealizado.setServico(servicoExistente);
-                    servicoRealizado.setOrdemServico(ordem);
-
-                    // Adicionar o serviço realizado à coleção
-                    ordem.getServicosRealizados().add(servicoRealizado);
+                    Servico servico = servicoRepository.findById(servicoRealizado.getServico().getIdServico())
+                            .orElseThrow(() -> new RuntimeException("Serviço não encontrado: ID " + servicoRealizado.getServico().getIdServico()));
+                    servicoRealizado.setServico(servico); // Relacionar com o serviço existente
+                    servicoRealizado.setOrdemServico(ordemExistente); // Relacionar com a ordem
+                    ordemExistente.getServicosRealizados().add(servicoRealizado);
                 }
             }
 
 
+            ordemExistente.setDataPrevistaSaida(ordemAtualizada.getDataPrevistaSaida());
+            ordemExistente.setStatus(ordemAtualizada.getStatus());
+            ordemExistente.setValorTotal(ordemAtualizada.getValorTotal());
 
-            // Salvar a ordem atualizada no banco
-            OrdemServico ordemSalva = ordemServicoRepository.save(ordem);
-            logger.info("Ordem de serviço atualizada com sucesso: {}", ordemSalva);
-            return ResponseEntity.ok(ordemSalva);
+
+
+            OrdemServico ordemAtualizadaSalva = ordemServicoRepository.save(ordemExistente);
+
+            logger.info("Ordem de serviço atualizada com sucesso: {}", ordemAtualizadaSalva);
+
+            return ResponseEntity.ok(ordemAtualizadaSalva);
 
         } catch (Exception e) {
             logger.error("Erro ao atualizar a ordem de serviço: ", e);
@@ -317,21 +332,21 @@ public class OrdemServicoController {
     }
 
 
-    // Excluir uma ordem de serviço
+
+
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> excluir(@PathVariable Long id) {
+    public ResponseEntity<?> deletar(@PathVariable Long id) {
         try {
-            OrdemServico ordem = ordemServicoRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Ordem de Serviço não encontrada"));
-
-            ordemServicoRepository.delete(ordem);
-            logger.info("Ordem de serviço excluída com sucesso: ID {}", id);
-            return ResponseEntity.ok().build();
-
+            if (!ordemServicoRepository.existsById(id)) {
+                throw new RuntimeException("Ordem de Serviço não encontrada para o ID fornecido: " + id);
+            }
+            ordemServicoRepository.deleteById(id);
+            return ResponseEntity.ok("Ordem de serviço deletada com sucesso.");
         } catch (Exception e) {
-            logger.error("Erro ao excluir a ordem de serviço: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro ao excluir a ordem de serviço: " + e.getMessage());
+                    .body("Erro ao deletar a ordem de serviço: " + e.getMessage());
         }
     }
+
 }
