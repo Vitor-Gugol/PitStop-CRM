@@ -1,7 +1,6 @@
 package com.unip.pitstop.controller;
 
-import com.unip.pitstop.dto.OrdemServicoDTO;
-import com.unip.pitstop.dto.OrdemServicoDetalhesDTO;
+import com.unip.pitstop.dto.*;
 import com.unip.pitstop.model.*;
 import com.unip.pitstop.repository.*;
 import jakarta.transaction.Transactional;
@@ -23,6 +22,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import com.unip.pitstop.model.Peca;
 import com.unip.pitstop.model.Servico;
+import com.unip.pitstop.model.ServicoRealizado;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -83,8 +83,55 @@ public class OrdemServicoController {
         );
     }
 
+    @GetMapping("/detalhes/pecas-servicos/{id}")
+    public OrdemDetalhesPecaServicoDTO buscarDetalhesPecaServico(@PathVariable Long id) {
+        OrdemServico ordemServico = ordemServicoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ordem de serviço não encontrada"));
+
+        List<PecaUtilizadaDTO> pecasDTO = ordemServico.getPecasUtilizadas().stream()
+                .map(pecaUtilizada -> new PecaUtilizadaDTO(
+                        pecaUtilizada.getPeca().getNome(), // Aqui estamos buscando o nome da entidade Peça
+                        pecaUtilizada.getQuantidade(),
+                        pecaUtilizada.getPrecoUnitario()
+                ))
+                .collect(Collectors.toList());
 
 
+
+        List<ServicoRealizadoDTO> servicosDTO = ordemServico.getServicosRealizados().stream()
+                .map(servicoRealizado -> new ServicoRealizadoDTO(
+                        servicoRealizado.getNome(), // Nome está na entidade Serviço
+                        servicoRealizado.getPrecoCobrado()
+                ))
+                .collect(Collectors.toList());
+
+
+
+
+        // Retornando o DTO principal
+        return new OrdemDetalhesPecaServicoDTO(
+                ordemServico.getIdOs(),
+                pecasDTO,
+                servicosDTO
+        );
+    }
+
+
+    @GetMapping("/servicos/nomes")
+    public List<String> listarNomesServicos() {
+        return servicoRepository.findAll()
+                .stream()
+                .map(Servico::getDescricao) // Correct method for accessing the description
+                .collect(Collectors.toList());
+    }
+    @GetMapping("/pecas")
+    public List<Peca> listarTodas() {
+        return pecaRepository.findAll();
+    }
+    @GetMapping("/servicos")
+    public List<Servico> listarTodos() {
+        return servicoRepository.findAll();
+    }
 
 
     // Cadastrar nova ordem de serviço
@@ -195,17 +242,69 @@ public class OrdemServicoController {
         }
     }
 
-    // Atualizar uma ordem de serviço existente
     @PutMapping("/{id}")
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody OrdemServico ordemAtualizada) {
         try {
+            // Buscar a ordem de serviço existente
             OrdemServico ordem = ordemServicoRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Ordem de Serviço não encontrada"));
 
+            // Atualizar dados básicos
             ordem.setDataPrevistaSaida(ordemAtualizada.getDataPrevistaSaida());
             ordem.setStatus(ordemAtualizada.getStatus());
             ordem.setValorTotal(ordemAtualizada.getValorTotal());
 
+            // Atualizar peças utilizadas
+            if (ordemAtualizada.getPecasUtilizadas() != null) {
+                // Remover todas as peças existentes
+                ordem.getPecasUtilizadas().clear();
+
+                for (PecaUtilizada pecaUtilizada : ordemAtualizada.getPecasUtilizadas()) {
+                    if (pecaUtilizada.getIdPeca() == null) {
+                        throw new RuntimeException("ID da peça é obrigatório.");
+                    }
+
+                    // Buscar a peça pelo ID
+                    Peca pecaExistente = pecaRepository.findById(pecaUtilizada.getIdPeca())
+                            .orElseThrow(() -> new RuntimeException("Peça não encontrada: ID " + pecaUtilizada.getIdPeca()));
+
+                    // Configurar relação entre peça e ordem
+                    pecaUtilizada.setPeca(pecaExistente);
+                    pecaUtilizada.setOrdemServico(ordem);
+
+                    // Adicionar a peça utilizada à coleção
+                    ordem.getPecasUtilizadas().add(pecaUtilizada);
+                }
+            }
+
+
+
+            // Atualizar serviços realizados
+            if (ordemAtualizada.getServicosRealizados() != null) {
+                // Remover todos os serviços existentes
+                ordem.getServicosRealizados().clear();
+
+                for (ServicoRealizado servicoRealizado : ordemAtualizada.getServicosRealizados()) {
+                    if (servicoRealizado.getIdServico() == null) {
+                        throw new RuntimeException("ID do serviço é obrigatório.");
+                    }
+
+                    // Buscar o serviço pelo ID
+                    Servico servicoExistente = servicoRepository.findById(servicoRealizado.getIdServico())
+                            .orElseThrow(() -> new RuntimeException("Serviço não encontrado: ID " + servicoRealizado.getIdServico()));
+
+                    // Configurar relação entre serviço e ordem
+                    servicoRealizado.setServico(servicoExistente);
+                    servicoRealizado.setOrdemServico(ordem);
+
+                    // Adicionar o serviço realizado à coleção
+                    ordem.getServicosRealizados().add(servicoRealizado);
+                }
+            }
+
+
+
+            // Salvar a ordem atualizada no banco
             OrdemServico ordemSalva = ordemServicoRepository.save(ordem);
             logger.info("Ordem de serviço atualizada com sucesso: {}", ordemSalva);
             return ResponseEntity.ok(ordemSalva);
@@ -216,6 +315,7 @@ public class OrdemServicoController {
                     .body("Erro ao atualizar a ordem de serviço: " + e.getMessage());
         }
     }
+
 
     // Excluir uma ordem de serviço
     @DeleteMapping("/{id}")

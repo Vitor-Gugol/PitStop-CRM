@@ -17,6 +17,10 @@ public class ServicoRealizado {
     @Column(name = "id_servico", nullable = false) // Chave estrangeira direta
     private Long idServico;
 
+
+    private String nome; // Nome do serviço
+
+
     @JsonBackReference
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY) // Usar LAZY para otimizar carregamento
     @JoinColumn(name = "id_os", nullable = false)
@@ -41,6 +45,13 @@ public class ServicoRealizado {
 
     // Getters e Setters
 
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
     public Long getIdServico() {
         return idServico;
     }
