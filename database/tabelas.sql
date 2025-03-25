@@ -177,4 +177,20 @@ CREATE TABLE historico_status_os (
 CREATE INDEX idx_placa_carro ON carro(placa);
 CREATE INDEX idx_nome_cliente ON cliente(nome);
 
+CREATE OR REPLACE FUNCTION atualizar_estoque_pecas()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Verificar se há estoque suficiente
+    IF (SELECT quantidade_estoque FROM peca WHERE id_peca = NEW.id_peca) < NEW.quantidade THEN
+        RAISE EXCEPTION 'Estoque insuficiente para a peça: ID %', NEW.id_peca;
+    END IF;
+
+    -- Atualizar estoque
+    UPDATE peca
+    SET quantidade_estoque = quantidade_estoque - NEW.quantidade
+    WHERE id_peca = NEW.id_peca;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
