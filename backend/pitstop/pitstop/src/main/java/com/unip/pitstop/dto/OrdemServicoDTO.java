@@ -1,19 +1,27 @@
 package com.unip.pitstop.dto;
 
+
+import org.springframework.web.bind.annotation.CrossOrigin;
+
+@CrossOrigin(origins = "http://localhost:3000")
 public class OrdemServicoDTO {
     private Long idOs; // Identificador único da Ordem
+
     private String clienteNome; // Nome do cliente associado
     private String carroModelo; // Modelo do carro associado
     private String dataEntrada; // Data de entrada da ordem
     private String status; // Status da ordem (opcional)
 
+
     // Construtor
     public OrdemServicoDTO(Long idOs, String clienteNome, String carroModelo, String dataEntrada, String status) {
         this.idOs = idOs;
+
         this.clienteNome = clienteNome;
         this.carroModelo = carroModelo;
         this.dataEntrada = dataEntrada;
         this.status = status;
+
     }
 
     // Getters e Setters

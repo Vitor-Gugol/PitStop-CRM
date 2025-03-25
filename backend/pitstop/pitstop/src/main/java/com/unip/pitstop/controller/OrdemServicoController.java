@@ -1,6 +1,7 @@
 package com.unip.pitstop.controller;
 
 import com.unip.pitstop.dto.OrdemServicoDTO;
+import com.unip.pitstop.dto.OrdemServicoDetalhesDTO;
 import com.unip.pitstop.model.*;
 import com.unip.pitstop.repository.*;
 import jakarta.transaction.Transactional;
@@ -46,18 +47,13 @@ public class OrdemServicoController {
 
     private static final Logger logger = LoggerFactory.getLogger(OrdemServicoController.class);
 
-    // Listar ordens com paginação completa
-    @GetMapping("/completo/paginado")
-    public Page<OrdemServico> listarPaginado(Pageable pageable) {
-        logger.info("Buscando ordens de serviço paginadas...");
-        return ordemServicoRepository.findAll(pageable);
-    }
 
-    // Listar dados do dashboard com DTO e paginação
+
+//DTO para puxar dados dashboard inicial
+
     @GetMapping("/dashboard")
     public Page<OrdemServicoDTO> listarParaPaginaDashboard(Pageable pageable) {
-        logger.info("Buscando dados do dashboard...");
-        return ordemServicoRepository.findAll(pageable)
+        return ordemServicoRepository.findAllByOrderByDataEntradaDesc(pageable)
                 .map(ordem -> new OrdemServicoDTO(
                         ordem.getIdOs(),
                         ordem.getCliente() != null ? ordem.getCliente().getNome() : "Cliente não informado",
@@ -66,6 +62,30 @@ public class OrdemServicoController {
                         ordem.getStatus()
                 ));
     }
+
+    //DTO para puxar todos os dados para atualizar cada ordem de serviço
+    @GetMapping("/detalhes/{id}")
+    public OrdemServicoDetalhesDTO buscarDetalhesOrdem(@PathVariable Long id) {
+        OrdemServico ordemServico = ordemServicoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ordem de serviço não encontrada"));
+
+        return new OrdemServicoDetalhesDTO(
+                ordemServico.getIdOs(),
+                ordemServico.getCliente() != null ? ordemServico.getCliente().getNome() : "Cliente não informado",
+                ordemServico.getCarro() != null ? ordemServico.getCarro().getModelo() : "Carro não informado",
+                ordemServico.getCarro() != null ? ordemServico.getCarro().getPlaca() : "Placa não informada",
+                ordemServico.getDataEntrada() != null ? ordemServico.getDataEntrada().toString() : "Data não informada",
+                ordemServico.getDataPrevistaSaida() != null ? ordemServico.getDataPrevistaSaida().toString() : "Data não informada",
+                ordemServico.getValorTotal() != null ? ordemServico.getValorTotal().toString() : "Valor não informado",
+                ordemServico.getStatus(),
+                ordemServico.getServicosRealizados(),
+                ordemServico.getPecasUtilizadas()
+        );
+    }
+
+
+
+
 
     // Cadastrar nova ordem de serviço
     @PostMapping

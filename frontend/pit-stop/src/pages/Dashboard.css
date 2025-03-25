@@ -117,6 +117,7 @@ td{
 }
 
 .nova-ordem-btn {
+    margin-top: 50px;
     padding: 10px 20px;
     background-color: #566873;
     color: white;
@@ -130,4 +131,118 @@ td{
 
 .nova-ordem-btn:hover {
     background-color: #815a50;
+}
+.modal {
+    width: 60%;
+    height: auto;
+    max-height: 90%;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+}
+
+.overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-label {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.form-input, .form-select {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.modal-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.modal-btn-cancel {
+    background-color: #f44336;
+    color: white;
+}
+
+.modal-btn-save {
+    background-color: #4CAF50;
+    color: white;
+}
+.modal-section {
+    margin-top: 20px;
+}
+
+.modal-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.modal-table th, .modal-table td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ccc;
+}
+
+.modal-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+.modal-body {
+    max-height: 70vh; /* Limita a altura do modal a 70% da altura da tela */
+    overflow-y: auto; /* Ativa o scroll vertical */
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+}
+
+.modal {
+    width: 60%;
+    height: auto;
+    margin: auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    overflow: hidden; /* Para evitar que o scroll fique na borda principal do modal */
+}
+
+.overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

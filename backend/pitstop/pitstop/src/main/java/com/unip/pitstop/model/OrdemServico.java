@@ -48,6 +48,7 @@ public class OrdemServico {
 
     // Getters e Setters
 
+
     public Long getIdOs() {
         return idOs;
     }
