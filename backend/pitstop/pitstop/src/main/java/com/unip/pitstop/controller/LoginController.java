@@ -9,9 +9,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-@RestController // Adicionado para indicar que é um controlador REST
-@RequestMapping("/login") // Adicionado para mapear a rota "/login" para essa classe
-@CrossOrigin(origins = "http://localhost:3000") // Permitir requisições do React (CORS)
+@RestController
+@RequestMapping("/login")
+@CrossOrigin(origins = "http://localhost:3000")
 public class LoginController {
 
     @PostMapping

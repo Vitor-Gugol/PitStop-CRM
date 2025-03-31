@@ -154,7 +154,7 @@ const buscarDetalhesOrdem = (id) => {
     const calcularPrecoTotal = () => {
         let total = 0;
     
-        // Somar valores das peças utilizadas
+      
         if (ordemSelecionada.pecasUtilizadas && ordemSelecionada.pecasUtilizadas.length > 0) {
             total += ordemSelecionada.pecasUtilizadas.reduce(
                 (acc, peca) => acc + (peca.quantidade * peca.precoUnitario || 0),
@@ -162,7 +162,7 @@ const buscarDetalhesOrdem = (id) => {
             );
         }
     
-        // Somar valores dos serviços realizados
+     
         if (ordemSelecionada.servicosRealizados && ordemSelecionada.servicosRealizados.length > 0) {
             total += ordemSelecionada.servicosRealizados.reduce(
                 (acc, servico) => acc + (servico.precoCobrado || 0),
@@ -170,7 +170,7 @@ const buscarDetalhesOrdem = (id) => {
             );
         }
     
-        // Atualizar o estado com o valor total
+        
         setOrdemSelecionada((prevState) => ({
             ...prevState,
             valorTotal: total,
@@ -186,7 +186,7 @@ const buscarDetalhesOrdem = (id) => {
                     throw new Error("Erro ao excluir a ordem de serviço");
                 }
                 console.log(`Ordem de serviço com ID ${id} excluída com sucesso.`);
-                buscarOrdens(); // Atualiza a lista de ordens
+                buscarOrdens();
             })
             .catch((error) => console.error("Erro ao excluir a ordem de serviço:", error));
     };
@@ -245,7 +245,7 @@ const buscarDetalhesOrdem = (id) => {
             >
                 Editar
             </button>
-             {/* Botão Excluir */}
+    
              <button
                     className="excluir-btn"
                     onClick={() => excluirOrdem(ordem.idOs)}
@@ -363,16 +363,6 @@ const buscarDetalhesOrdem = (id) => {
 
 
 </label>
-
-
-
-
-
-
-
-
-
-          
                 <label className="form-label">
                     Valor Total:
                     <input
@@ -429,10 +419,10 @@ const buscarDetalhesOrdem = (id) => {
                     value={peca.idPeca || ""}
                     onChange={(e) => {
                         const novasPecas = [...ordemSelecionada.pecasUtilizadas];
-                        novasPecas[index].idPeca = parseInt(e.target.value, 10);
+                        novasPecas[index].idPeca = parseInt(e.target.value, 10); 
                         setOrdemSelecionada({
-                            ...ordemSelecionada,
-                            pecasUtilizadas: novasPecas,
+                          ...ordemSelecionada,
+                          pecasUtilizadas: novasPecas,
                         });
                     }}
                 >
@@ -455,7 +445,7 @@ const buscarDetalhesOrdem = (id) => {
                             ...ordemSelecionada,
                             pecasUtilizadas: novasPecas,
                         });
-                        calcularPrecoTotal(); // Recalcula o preço total
+                        calcularPrecoTotal(); 
                     }}
                 />
             </td>
@@ -470,7 +460,7 @@ const buscarDetalhesOrdem = (id) => {
                             ...ordemSelecionada,
                             pecasUtilizadas: novasPecas,
                         });
-                        calcularPrecoTotal(); // Recalcula o preço total
+                        calcularPrecoTotal(); 
                     }}
                 />
             </td>
@@ -490,8 +480,6 @@ const buscarDetalhesOrdem = (id) => {
         </table>
     </div>
 )}
-
-
 
 {ordemSelecionada?.servicosRealizados && ordemSelecionada.servicosRealizados.length > 0 && (
     <div className="modal-section">
@@ -537,7 +525,7 @@ const buscarDetalhesOrdem = (id) => {
                             ...ordemSelecionada,
                             servicosRealizados: novosServicos,
                         });
-                        calcularPrecoTotal(); // Recalcula o preço total
+                        calcularPrecoTotal(); 
                     }}
                 />
             </td>

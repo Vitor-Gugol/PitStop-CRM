@@ -17,12 +17,12 @@ public class PecaUtilizada {
     private Long idPeca;
 
     @JsonBackReference
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL) //pra que serve
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "id_os", nullable = false)
     private OrdemServico ordemServico;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id_peca", insertable = false, updatable = false) // Relacionamento com Peca
+    @JoinColumn(name = "id_peca", insertable = false, updatable = false)
     private Peca peca;
 
 

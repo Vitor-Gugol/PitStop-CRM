@@ -1,0 +1,86 @@
+/* src/pages/FluxoCarros.module.css */
+.container {
+    padding: 20px;
+    max-height: 80vh;
+}
+
+.filtros {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.filtros label {
+    margin-right: 10px;
+}
+
+.tabelaCarros {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.tabelaCarros th,
+.tabelaCarros td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.tabelaCarros th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.tabelaCarros tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.erro {
+    color: red;
+    margin-top: 10px;
+}
+
+/* src/pages/FluxoCarros.module.css */
+/* ... outros estilos ... */
+
+.tabelaContainer {
+    max-height: 500px; /* Defina a altura máxima desejada */
+    overflow-y: auto; /* Adiciona a barra de rolagem vertical quando necessário */
+    display: block; /* Garante que o overflow funcione corretamente */
+    margin-top: 10px; /* Adiciona um pouco de espaço acima da tabela */
+}
+
+.tabelaCarros {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabelaCarros th,
+.tabelaCarros td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.tabelaCarros th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.tabelaCarros tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.tabelaContainer {
+    overflow: auto; 
+    max-height: 500px; 
+    margin-top: 10px; 
+    border: 1px solid #ccc; 
+    background-color: white;
+}
+
+.tabelaCarros {
+    width: 100%; 
+    border-collapse: collapse;
+}

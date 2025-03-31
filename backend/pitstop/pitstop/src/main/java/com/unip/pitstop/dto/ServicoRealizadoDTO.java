@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 @CrossOrigin(origins = "http://localhost:3000")
 public class ServicoRealizadoDTO {
-    private String nome; // Nome do serviço
-    private double precoCobrado; // Preço cobrado pelo serviço
+    private String nome;
+    private double precoCobrado;
 
     // Construtor
     public ServicoRealizadoDTO(String nome, double precoCobrado) {

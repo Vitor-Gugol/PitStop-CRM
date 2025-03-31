@@ -6,7 +6,7 @@ function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-    const navigate = useNavigate(); // Certifique-se de inicializar o navigate
+    const navigate = useNavigate(); 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -24,8 +24,8 @@ function Login() {
             if (response.ok) {
                 const data = await response.text(); // Receber como texto, já que o backend retorna texto
                 console.log("Login bem-sucedido:", data);
-                setError(""); // Limpar qualquer mensagem de erro
-                alert(data); // Exibir mensagem de sucesso como exemplo
+                setError(""); 
+                alert(data); 
                 navigate("/dashboard"); // Redirecionar para o dashboard após o sucesso
             } else {
                 const errorMessage = await response.text();
@@ -64,7 +64,7 @@ function Login() {
                     />
                 </div>
                 <button type="submit" className="login-btn">Entrar</button>
-                {error && <p className="error-message">{error}</p>} {/* Mostrar erro, se houver */}
+                {error && <p className="error-message">{error}</p>} 
             </form>
         </div>
     );

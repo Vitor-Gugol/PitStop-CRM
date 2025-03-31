@@ -14,15 +14,17 @@ public class ServicoRealizado {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idServicoRealizado;
 
-    @Column(name = "id_servico", nullable = false) // Chave estrangeira direta
+    @Column(name = "id_servico", nullable = false)
     private Long idServico;
 
 
     private String nome; // Nome do serviço
 
+    @Column(name = "mecanico_id")
+    private Long mecanicoId;
 
     @JsonBackReference
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY) // Usar LAZY para otimizar carregamento
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "id_os", nullable = false)
     private OrdemServico ordemServico;
 
@@ -44,6 +46,14 @@ public class ServicoRealizado {
     }
 
     // Getters e Setters
+
+    public Long getMecanicoId() {
+        return mecanicoId;
+    }
+
+    public void setMecanicoId(Long mecanicoId) {
+        this.mecanicoId = mecanicoId;
+    }
 
     public String getNome() {
         return nome;

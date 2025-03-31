@@ -20,15 +20,15 @@ public class OrdemServico {
     private Long idOs;
 
 
-    // A data de entrada é definida automaticamente como o momento atual
+
     private LocalDateTime dataEntrada = LocalDateTime.now();
 
     @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JsonManagedReference // Gerencia referência para evitar problemas de serialização
+    @JsonManagedReference
     private List<ServicoRealizado> servicosRealizados;
 
     @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JsonManagedReference // Gerencia referência para evitar problemas de serialização
+    @JsonManagedReference
     private List<PecaUtilizada> pecasUtilizadas;
 
     @NotNull(message = "O cliente é obrigatório.")
@@ -54,6 +54,7 @@ public class OrdemServico {
     private Double valorTotal;
 
     // Getters e Setters
+
 
 
     public Long getIdOs() {

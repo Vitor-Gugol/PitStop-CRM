@@ -52,7 +52,7 @@ td{
     background-color: red;
 }
 
-/* Estilo do Modal */
+
 .modal {
     position: absolute;
     top: 50%;
@@ -74,7 +74,7 @@ td{
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-/* Ações no Modal */
+
 .modal-actions {
     margin-top: 20px;
     display: flex;
@@ -235,8 +235,8 @@ td{
     font-weight: bold;
 }
 .modal-body {
-    max-height: 70vh; /* Limita a altura do modal a 70% da altura da tela */
-    overflow-y: auto; /* Ativa o scroll vertical */
+    max-height: 70vh; 
+    overflow-y: auto; 
     padding: 20px;
     background-color: #fff;
     border-radius: 10px;
@@ -249,7 +249,7 @@ td{
     background: white;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    overflow: hidden; /* Para evitar que o scroll fique na borda principal do modal */
+    overflow: hidden; 
 }
 
 .overlay {

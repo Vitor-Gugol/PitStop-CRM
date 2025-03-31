@@ -1,10 +1,7 @@
 package com.unip.pitstop.dto;
 
-import com.unip.pitstop.model.PecaUtilizada;
-import com.unip.pitstop.model.ServicoRealizado;
-import org.springframework.web.bind.annotation.CrossOrigin;
-
 import java.util.List;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 @CrossOrigin(origins = "http://localhost:3000")
 public class OrdemServicoDetalhesDTO {
@@ -16,11 +13,11 @@ public class OrdemServicoDetalhesDTO {
     private String dataPrevistaSaida;
     private String valorTotal;
     private String status;
-    private List<ServicoRealizado> servicosRealizados;
-    private List<PecaUtilizada> pecasUtilizadas;
+    private List<ServicoRealizadoDetalheDTO> servicosRealizados; // Use o novo DTO
+    private List<PecaUtilizadaDetalheDTO> pecasUtilizadas; // Use o novo DTO
 
-    // Construtor
-    public OrdemServicoDetalhesDTO(Long idOs, String clienteNome, String carroModelo, String carroPlaca, String dataEntrada, String dataPrevistaSaida, String valorTotal, String status, List<ServicoRealizado> servicosRealizados, List<PecaUtilizada> pecasUtilizadas) {
+
+    public OrdemServicoDetalhesDTO(Long idOs, String clienteNome, String carroModelo, String carroPlaca, String dataEntrada, String dataPrevistaSaida, String valorTotal, String status, List<ServicoRealizadoDetalheDTO> servicosRealizados, List<PecaUtilizadaDetalheDTO> pecasUtilizadas) {
         this.idOs = idOs;
         this.clienteNome = clienteNome;
         this.carroModelo = carroModelo;
@@ -33,7 +30,7 @@ public class OrdemServicoDetalhesDTO {
         this.pecasUtilizadas = pecasUtilizadas;
     }
 
-    // Getters e Setters
+    // Getters e Setters (atualize os tipos das listas)
     public Long getIdOs() {
         return idOs;
     }
@@ -98,19 +95,19 @@ public class OrdemServicoDetalhesDTO {
         this.status = status;
     }
 
-    public List<ServicoRealizado> getServicosRealizados() {
+    public List<ServicoRealizadoDetalheDTO> getServicosRealizados() {
         return servicosRealizados;
     }
 
-    public void setServicosRealizados(List<ServicoRealizado> servicosRealizados) {
+    public void setServicosRealizados(List<ServicoRealizadoDetalheDTO> servicosRealizados) {
         this.servicosRealizados = servicosRealizados;
     }
 
-    public List<PecaUtilizada> getPecasUtilizadas() {
+    public List<PecaUtilizadaDetalheDTO> getPecasUtilizadas() {
         return pecasUtilizadas;
     }
 
-    public void setPecasUtilizadas(List<PecaUtilizada> pecasUtilizadas) {
+    public void setPecasUtilizadas(List<PecaUtilizadaDetalheDTO> pecasUtilizadas) {
         this.pecasUtilizadas = pecasUtilizadas;
     }
 }

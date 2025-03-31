@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import com.unip.pitstop.model.Cliente;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,8 @@ import com.unip.pitstop.model.ServicoRealizado;
 @RequestMapping("/ordens")
 public class OrdemServicoController {
 
+
+    private static final Logger logger = LoggerFactory.getLogger(OrdemServicoController.class);
     @Autowired
     private OrdemServicoRepository ordemServicoRepository;
 
@@ -44,14 +48,20 @@ public class OrdemServicoController {
     @Autowired
     private ServicoRepository servicoRepository;
 
+    @Autowired
+    private  MecanicoRepository mecanicoRepository;
 
 
 
-    private static final Logger logger = LoggerFactory.getLogger(OrdemServicoController.class);
+    public OrdemServicoController(OrdemServicoRepository ordemServicoRepository, ClienteRepository clienteRepository, CarroRepository carroRepository, PecaRepository pecaRepository, ServicoRepository servicoRepository, MecanicoRepository mecanicoRepository) {
+        this.ordemServicoRepository = ordemServicoRepository;
+        this.clienteRepository = clienteRepository;
+        this.carroRepository = carroRepository;
+        this.pecaRepository = pecaRepository;
+        this.servicoRepository = servicoRepository;
+        this.mecanicoRepository = mecanicoRepository;
+    }
 
-
-
-//DTO para puxar dados dashboard inicial
 
     @GetMapping("/dashboard")
     public Page<OrdemServicoDTO> listarParaPaginaDashboard(Pageable pageable) {
@@ -65,11 +75,35 @@ public class OrdemServicoController {
                 ));
     }
 
-    //DTO para puxar todos os dados para atualizar cada ordem de serviço
     @GetMapping("/detalhes/{id}")
     public OrdemServicoDetalhesDTO buscarDetalhesOrdem(@PathVariable Long id) {
         OrdemServico ordemServico = ordemServicoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ordem de serviço não encontrada"));
+
+        List<ServicoRealizadoDetalheDTO> servicosDetalhados = ordemServico.getServicosRealizados().stream()
+                .map(sr -> {
+                    Servico servico = sr.getServico();
+                    return new ServicoRealizadoDetalheDTO(
+                            sr.getIdServicoRealizado(),
+                            servico != null ? servico.getIdServico() : null,
+                            servico != null ? servico.getDescricao() : null,
+                            sr.getPrecoCobrado()
+                    );
+                })
+                .collect(Collectors.toList());
+
+        List<PecaUtilizadaDetalheDTO> pecasDetalhadas = ordemServico.getPecasUtilizadas().stream()
+                .map(pu -> {
+                    Peca peca = pu.getPeca();
+                    return new PecaUtilizadaDetalheDTO(
+                            pu.getIdPecaUtilizada(),
+                            peca != null ? peca.getIdPeca() : null,
+                            peca != null ? peca.getNome() : null,
+                            pu.getQuantidade(),
+                            pu.getPrecoUnitario()
+                    );
+                })
+                .collect(Collectors.toList());
 
         return new OrdemServicoDetalhesDTO(
                 ordemServico.getIdOs(),
@@ -80,8 +114,8 @@ public class OrdemServicoController {
                 ordemServico.getDataPrevistaSaida() != null ? ordemServico.getDataPrevistaSaida().toString() : "Data não informada",
                 ordemServico.getValorTotal() != null ? ordemServico.getValorTotal().toString() : "Valor não informado",
                 ordemServico.getStatus(),
-                ordemServico.getServicosRealizados(),
-                ordemServico.getPecasUtilizadas()
+                servicosDetalhados,
+                pecasDetalhadas
         );
     }
 
@@ -92,7 +126,7 @@ public class OrdemServicoController {
 
         List<PecaUtilizadaDTO> pecasDTO = ordemServico.getPecasUtilizadas().stream()
                 .map(pecaUtilizada -> new PecaUtilizadaDTO(
-                        pecaUtilizada.getPeca().getNome(), // Aqui estamos buscando o nome da entidade Peça
+                        pecaUtilizada.getPeca().getNome(),
                         pecaUtilizada.getQuantidade(),
                         pecaUtilizada.getPrecoUnitario()
                 ))
@@ -102,7 +136,7 @@ public class OrdemServicoController {
 
         List<ServicoRealizadoDTO> servicosDTO = ordemServico.getServicosRealizados().stream()
                 .map(servicoRealizado -> new ServicoRealizadoDTO(
-                        servicoRealizado.getNome(), // Nome está na entidade Serviço
+                        servicoRealizado.getNome(),
                         servicoRealizado.getPrecoCobrado()
                 ))
                 .collect(Collectors.toList());
@@ -110,7 +144,6 @@ public class OrdemServicoController {
 
 
 
-        // Retornando o DTO principal
         return new OrdemDetalhesPecaServicoDTO(
                 ordemServico.getIdOs(),
                 pecasDTO,
@@ -123,7 +156,7 @@ public class OrdemServicoController {
     public List<String> listarNomesServicos() {
         return servicoRepository.findAll()
                 .stream()
-                .map(Servico::getDescricao) // Correct method for accessing the description
+                .map(Servico::getDescricao)
                 .collect(Collectors.toList());
     }
     @GetMapping("/pecas")
@@ -136,7 +169,6 @@ public class OrdemServicoController {
     }
 
 
-    // Cadastrar nova ordem de serviço
     @PostMapping
     @Transactional
     public ResponseEntity<?> cadastrar(@Valid @RequestBody OrdemServico ordemServico, BindingResult result) {
@@ -150,21 +182,19 @@ public class OrdemServicoController {
 
         try {
 
-            // Garantir que cliente e carro não sejam nulos
-
             if (ordemServico.getCliente() == null || ordemServico.getCliente().getEmail() == null) {
                 throw new IllegalArgumentException("E-mail do cliente é obrigatório.");
             }
 
 
-                    Cliente cliente = clienteRepository.findByEmail(ordemServico.getCliente().getEmail())
-                            .orElseGet(() -> {
-                                if (ordemServico.getCliente().getNome() == null) {
-                                    throw new IllegalArgumentException("Nome do cliente é obrigatório ao criar um novo cliente.");
-                                }
-                                logger.info("Cliente não encontrado. Criando novo cliente: {}", ordemServico.getCliente());
-                                return clienteRepository.save(ordemServico.getCliente());
-                            });
+            Cliente cliente = clienteRepository.findByEmail(ordemServico.getCliente().getEmail())
+                    .orElseGet(() -> {
+                        if (ordemServico.getCliente().getNome() == null) {
+                            throw new IllegalArgumentException("Nome do cliente é obrigatório ao criar um novo cliente.");
+                        }
+                        logger.info("Cliente não encontrado. Criando novo cliente: {}", ordemServico.getCliente());
+                        return clienteRepository.save(ordemServico.getCliente());
+                    });
 
 
 
@@ -172,40 +202,38 @@ public class OrdemServicoController {
                 throw new IllegalArgumentException("Placa do carro é obrigatória.");
             }
 
-                            // Buscar carro pela placa ou criar um novo
-                            Carro carro = carroRepository.findByPlaca(ordemServico.getCarro().getPlaca())
-                                .orElseGet(() -> {
-                                    if (ordemServico.getCarro().getMarca() == null || ordemServico.getCarro().getModelo() == null) {
-                                        throw new IllegalArgumentException("Marca e modelo do carro são obrigatórios ao criar um novo carro.");
-                                    }
-                                    logger.info("Carro não encontrado. Criando novo carro: {}", ordemServico.getCarro());
-                                    ordemServico.getCarro().setCliente(cliente); // Associar cliente ao carro
-                                    return carroRepository.save(ordemServico.getCarro());
-                                });
+            Carro carro = carroRepository.findByPlaca(ordemServico.getCarro().getPlaca())
+                    .orElseGet(() -> {
+                        if (ordemServico.getCarro().getMarca() == null || ordemServico.getCarro().getModelo() == null) {
+                            throw new IllegalArgumentException("Marca e modelo do carro são obrigatórios ao criar um novo carro.");
+                        }
+                        logger.info("Carro não encontrado. Criando novo carro: {}", ordemServico.getCarro());
+                        ordemServico.getCarro().setCliente(cliente); // Associar cliente ao carro
+                        return carroRepository.save(ordemServico.getCarro());
+                    });
 
 
-                        ordemServico.setCliente(cliente);
-                        ordemServico.setCarro(carro);
+            ordemServico.setCliente(cliente);
+            ordemServico.setCarro(carro);
 
 
-                        ordemServicoRepository.save(ordemServico);
+            ordemServicoRepository.save(ordemServico);
 
-                        logger.info("Ordem de serviço salva com sucesso.");
+            logger.info("Ordem de serviço salva com sucesso.");
 
 
 
             if (ordemServico.getPecasUtilizadas() != null) {
                 for (PecaUtilizada pecaUtilizada : ordemServico.getPecasUtilizadas()) {
-                    if (pecaUtilizada.getIdPeca() == null) { // Verificar ID da peça diretamente
+                    if (pecaUtilizada.getIdPeca() == null) {
                         throw new RuntimeException("O campo idPeca é obrigatório.");
                     }
 
-                    // Buscar a peça pelo ID
                     Peca pecaExistente = pecaRepository.findById(pecaUtilizada.getIdPeca())
                             .orElseThrow(() -> new RuntimeException("Peça não encontrada com ID: " + pecaUtilizada.getIdPeca()));
 
-                    // Associar a peça ao objeto PecaUtilizada
-                    pecaUtilizada.setPeca(pecaExistente); // Relacionar objeto completo
+
+                    pecaUtilizada.setPeca(pecaExistente);
                     pecaUtilizada.setOrdemServico(ordemServico);
                 }
             }
@@ -216,24 +244,28 @@ public class OrdemServicoController {
 
             if (ordemServico.getServicosRealizados() != null) {
                 for (ServicoRealizado servicoRealizado : ordemServico.getServicosRealizados()) {
-                    if (servicoRealizado.getIdServico() == null) { // Verificar ID do serviço diretamente
+                    if (servicoRealizado.getIdServico() == null) {
                         throw new RuntimeException("O campo idServico é obrigatório.");
                     }
 
-                    // Buscar o serviço pelo ID
                     Servico servicoExistente = servicoRepository.findById(servicoRealizado.getIdServico())
                             .orElseThrow(() -> new RuntimeException("Serviço não encontrado com ID: " + servicoRealizado.getIdServico()));
 
-                    // Associar o serviço ao objeto ServicoRealizado
-                    servicoRealizado.setServico(servicoExistente); // Relacionar objeto completo
+                    servicoRealizado.setServico(servicoExistente);
                     servicoRealizado.setOrdemServico(ordemServico);
+
+                    if (servicoRealizado.getMecanicoId() == null) {
+                        throw new RuntimeException("O campo mecanicoId é obrigatório para cada serviço realizado.");
+                    }
+                    Mecanico mecanicoResponsavel = mecanicoRepository.findById(servicoRealizado.getMecanicoId())
+                            .orElseThrow(() -> new RuntimeException("Mecânico não encontrado com ID: " + servicoRealizado.getMecanicoId()));
+                    servicoRealizado.setMecanicoId(mecanicoResponsavel.getId());
                 }
             }
 
 
 
 
-            // Salvar ordem de serviço
             OrdemServico ordemSalva = ordemServicoRepository.save(ordemServico);
             logger.info("Ordem de serviço salva com sucesso: {}", ordemSalva);
             return ResponseEntity.status(HttpStatus.CREATED).body(ordemSalva);
@@ -245,6 +277,39 @@ public class OrdemServicoController {
 
         }
     }
+
+    @GetMapping("/fluxo-carros")
+    public ResponseEntity<List<FluxoCarrosDTO>> listarOrdensParaFluxoCarros(
+            @RequestParam(name = "status", required = false) String status) {
+        List<OrdemServico> ordens;
+
+        if (status != null && !status.isEmpty()) {
+            ordens = ordemServicoRepository.findByStatusIgnoreCase(status);
+        } else {
+            ordens = ordemServicoRepository.findAll();
+        }
+
+        List<FluxoCarrosDTO> fluxoCarrosDTOList = ordens.stream()
+                .map(ordem -> {
+                    LocalDateTime dataSaida = null;
+                    if (ordem.getStatus() != null && ordem.getStatus().equalsIgnoreCase("concluído") && ordem.getDataPrevistaSaida() != null) {
+                        dataSaida = ordem.getDataPrevistaSaida();
+                    }
+                    return new FluxoCarrosDTO(
+                            ordem.getIdOs(),
+                            ordem.getCarro() != null ? ordem.getCarro().getPlaca() : "Placa não informada",
+                            ordem.getCarro() != null ? ordem.getCarro().getModelo() : "Modelo não informado",
+                            ordem.getCliente() != null ? ordem.getCliente().getNome() : "Cliente não informado",
+                            ordem.getDataEntrada(),
+                            dataSaida,
+                            ordem.getStatus()
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(fluxoCarrosDTOList, HttpStatus.OK);
+    }
+
 
     @PutMapping("/{id}")
     @Transactional
@@ -264,10 +329,8 @@ public class OrdemServicoController {
                             logger.info("Cliente não encontrado. Criando novo cliente: {}", ordemAtualizada.getCliente());
                             return clienteRepository.save(ordemAtualizada.getCliente());
                         });
-                ordemExistente.setCliente(cliente); // Atualizar cliente na ordem
+                ordemExistente.setCliente(cliente);
             }
-
-
 
             if (ordemAtualizada.getCarro() != null && ordemAtualizada.getCarro().getIdCarro() != null) {
                 logger.info("Carro recebido no payload: {}", ordemAtualizada.getCarro());
@@ -279,12 +342,8 @@ public class OrdemServicoController {
                             logger.info("Carro não encontrado. Criando novo carro: {}", ordemAtualizada.getCarro());
                             return carroRepository.save(ordemAtualizada.getCarro());
                         });
-                ordemExistente.setCarro(carro); // Atualizar carro na ordem existente
+                ordemExistente.setCarro(carro);
             }
-
-
-
-
 
             if (ordemAtualizada.getPecasUtilizadas() != null) {
                 logger.info("Atualizando peças utilizadas...");
@@ -298,30 +357,54 @@ public class OrdemServicoController {
                 }
             }
 
-            // Atualizar serviços realizados
-            if (ordemAtualizada.getServicosRealizados() != null) {
-                logger.info("Atualizando serviços realizados...");
-                ordemExistente.getServicosRealizados().clear();
-                for (ServicoRealizado servicoRealizado : ordemAtualizada.getServicosRealizados()) {
-                    Servico servico = servicoRepository.findById(servicoRealizado.getServico().getIdServico())
-                            .orElseThrow(() -> new RuntimeException("Serviço não encontrado: ID " + servicoRealizado.getServico().getIdServico()));
-                    servicoRealizado.setServico(servico); // Relacionar com o serviço existente
-                    servicoRealizado.setOrdemServico(ordemExistente); // Relacionar com a ordem
-                    ordemExistente.getServicosRealizados().add(servicoRealizado);
-                }
-            }
 
+            if (ordemAtualizada.getServicosRealizados() != null) {
+
+                List<Long> servicosRealizadosProcessados = new ArrayList<>();
+
+                for (ServicoRealizado servicoRealizadoDTO : ordemAtualizada.getServicosRealizados()) {
+                    Servico servico = servicoRepository.findById(servicoRealizadoDTO.getIdServico())
+                            .orElseThrow(() -> new RuntimeException("Serviço não encontrado: ID " + servicoRealizadoDTO.getIdServico()));
+
+                    if (servicoRealizadoDTO.getIdServicoRealizado() != null) {
+
+                        ServicoRealizado servicoRealizadoExistente = ordemExistente.getServicosRealizados().stream()
+                                .filter(sr -> servicoRealizadoDTO.getIdServicoRealizado().equals(sr.getIdServicoRealizado()))
+                                .findFirst()
+                                .orElse(null);
+
+                        if (servicoRealizadoExistente != null) {
+                            servicoRealizadoExistente.setServico(servico);
+                            servicoRealizadoExistente.setPrecoCobrado(servicoRealizadoDTO.getPrecoCobrado());
+                            servicosRealizadosProcessados.add(servicoRealizadoExistente.getIdServicoRealizado());
+                        } else {
+
+                            logger.error("Tentativa de atualizar ServicoRealizado com ID {} que não está associado à Ordem {}", servicoRealizadoDTO.getIdServicoRealizado(), id);
+
+                        }
+                    } else {
+
+                        ServicoRealizado novoServicoRealizado = new ServicoRealizado();
+                        novoServicoRealizado.setServico(servico);
+                        novoServicoRealizado.setPrecoCobrado(servicoRealizadoDTO.getPrecoCobrado());
+                        novoServicoRealizado.setOrdemServico(ordemExistente);
+                        ordemExistente.getServicosRealizados().add(novoServicoRealizado);
+                    }
+                }
+
+                // Remover serviços realizados que não foram incluídos na atualização
+                ordemExistente.getServicosRealizados().removeIf(sr -> !servicosRealizadosProcessados.contains(sr.getIdServicoRealizado()));
+            } else {
+                // Se servicosRealizados for null na ordem atualizada, remover todos os existentes
+                ordemExistente.getServicosRealizados().clear();
+            }
 
             ordemExistente.setDataPrevistaSaida(ordemAtualizada.getDataPrevistaSaida());
             ordemExistente.setStatus(ordemAtualizada.getStatus());
             ordemExistente.setValorTotal(ordemAtualizada.getValorTotal());
 
-
-
             OrdemServico ordemAtualizadaSalva = ordemServicoRepository.save(ordemExistente);
-
             logger.info("Ordem de serviço atualizada com sucesso: {}", ordemAtualizadaSalva);
-
             return ResponseEntity.ok(ordemAtualizadaSalva);
 
         } catch (Exception e) {
@@ -330,8 +413,6 @@ public class OrdemServicoController {
                     .body("Erro ao atualizar a ordem de serviço: " + e.getMessage());
         }
     }
-
-
 
 
 

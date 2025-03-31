@@ -5,9 +5,9 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 @CrossOrigin(origins = "http://localhost:3000")
 public class PecaUtilizadaDTO {
-    private String nome; // Nome da peça
-    private int quantidade; // Quantidade
-    private double precoUnitario; // Preço unitário
+    private String nome;
+    private int quantidade;
+    private double precoUnitario;
 
     // Construtor
     public PecaUtilizadaDTO(String nome, int quantidade, double precoUnitario) {

@@ -15,12 +15,13 @@ function NovaOrdem() {
         dataPrevistaSaida: "",
         status: "",
         pecasUtilizadas: [{ precoUnitario: "", idPeca: "", quantidade: "" }],
-        servicosRealizados: [],
+        servicosRealizados: [{ idServico: "", precoCobrado: "", mecanicoId: "" }], 
     });
 
     const [pecas, setPecas] = useState([]);
     const [servicos, setServicos] = useState([]);
-    const [erros, setErros] = useState(""); // Estado para exibir mensagens de erro
+    const [mecanicos, setMecanicos] = useState([]);
+    const [erros, setErros] = useState(""); 
 
     // Fetch de dados do backend
     useEffect(() => {
@@ -36,11 +37,14 @@ function NovaOrdem() {
             } catch (error) {
                 console.error("Erro ao carregar dados:", error);
             }
+            const mecanicosResponse = await fetch("http://localhost:8080/mecanicos/listar");
+        const mecanicosData = await mecanicosResponse.json();
+        setMecanicos(mecanicosData);
         };
         fetchData();
     }, []);
 
-    // Atualiza o estado dos campos
+  
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setOrdem((prevState) => ({ ...prevState, [name]: value }));
@@ -63,7 +67,7 @@ function NovaOrdem() {
     };
 
     
-    // Submissão do formulário
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         const errosValidacao = validarFormulario();
@@ -124,20 +128,19 @@ function NovaOrdem() {
         }));
     };
 
-    // Adicionar um novo serviço
     const adicionarServico = () => {
         setOrdem((prevState) => ({
             ...prevState,
-            servicosRealizados: [...prevState.servicosRealizados, { idServico: "", precoCobrado: "" }],
+            servicosRealizados: [...prevState.servicosRealizados, { idServico: "", precoCobrado: "", mecanicoId: "" }],
         }));
     };
 
     return (
         <div className="nova-ordem-container">
             <h1>Criar Nova Ordem de Serviço</h1>
-            {erros && <div className="error-message">{erros}</div>} {/* Exibição de erros */}
+            {erros && <div className="error-message">{erros}</div>} 
             <form onSubmit={handleSubmit}>
-                {/* Dados do Cliente */}
+        
                 <h3>Dados do Cliente</h3>
                 <div className="form-group">
                     <label>Nome:</label>
@@ -150,7 +153,7 @@ function NovaOrdem() {
                     <input name="clienteEndereco" type="text" value={ordem.clienteEndereco} onChange={handleInputChange} />
                 </div>
 
-                {/* Dados do Carro */}
+                
                 <h3>Dados do Carro</h3>
                 <div className="form-group">
                     <label>Marca:</label>
@@ -165,7 +168,7 @@ function NovaOrdem() {
                     <input name="carroChassi" type="text" value={ordem.carroChassi} onChange={handleInputChange} />
                 </div>
 
-                {/* Peças Utilizadas */}
+          
                 <h3>Peças Utilizadas</h3>
                 {ordem.pecasUtilizadas.map((peca, index) => (
                     <div key={index} className="form-group">
@@ -208,7 +211,7 @@ function NovaOrdem() {
                 ))}
                 <button type="button" onClick={adicionarPeca}>Adicionar Peça</button>
 
-                {/* Serviços Realizados */}
+       
                 <h3>Serviços Realizados</h3>
                 {ordem.servicosRealizados.map((servico, index) => (
                     <div key={index} className="form-group">
@@ -237,11 +240,27 @@ function NovaOrdem() {
                                 setOrdem({ ...ordem, servicosRealizados: updatedServicos });
                             }}
                         />
+                        {/* Novo select para o mecânico */}
+        <select
+            value={servico.mecanicoId || ""} 
+            onChange={(e) => {
+                const updatedServicos = [...ordem.servicosRealizados];
+                updatedServicos[index].mecanicoId = e.target.value;
+                setOrdem({ ...ordem, servicosRealizados: updatedServicos });
+            }}
+        >
+            <option value="">Selecione o Mecânico</option>
+            {mecanicos.map((mecanico) => (
+                <option key={mecanico.id} value={mecanico.id}>
+                    {mecanico.nome}
+                </option>
+            ))}
+        </select>
                     </div>
                 ))}
                 <button type="button" onClick={adicionarServico}>Adicionar Serviço</button>
 
-                {/* Dados da Ordem de Serviço */}
+          
                 <h3>Dados da Ordem de Serviço</h3>
                 <div className="form-group">
                     <label>Data Prevista de Saída:</label>

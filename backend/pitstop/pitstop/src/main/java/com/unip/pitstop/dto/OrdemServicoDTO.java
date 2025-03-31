@@ -7,10 +7,10 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 public class OrdemServicoDTO {
     private Long idOs; // Identificador único da Ordem
 
-    private String clienteNome; // Nome do cliente associado
-    private String carroModelo; // Modelo do carro associado
-    private String dataEntrada; // Data de entrada da ordem
-    private String status; // Status da ordem (opcional)
+    private String clienteNome;
+    private String carroModelo;
+    private String dataEntrada;
+    private String status;
 
 
     // Construtor
